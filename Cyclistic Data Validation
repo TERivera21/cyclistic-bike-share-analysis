@@ -1,0 +1,118 @@
+/*
+Cyclistic bike-share analysis: raw-data review and clean-table creation
+SQL dialect: SQLite
+Input: cyclistic
+Output: cyclistic_clean
+
+Purpose: inspect imported records, investigate dates outside the intended
+September 2025-August 2026 analysis period, examine repeated ride IDs,
+and create a table containing distinct combinations of the selected fields.
+
+The original queries are preserved below. Comments explain their scope;
+no results are asserted here because this script has not been rerun.
+The later analysis of cyclistic_clean is maintained separately.
+*/
+
+-- 1. Establish the total number of records before cleaning.
+Select count(*) as total_rides
+FROM cyclistic;
+
+-- 2. Preview five records to inspect the imported fields and values.
+-- Without ORDER BY, these are a preview rather than a defined sample.
+Select *
+FROM cyclistic
+LIMIT 5;
+
+-- 3. Summarize rides by start month to inspect temporal coverage.
+-- substr assumes started_at begins with a consistently formatted YYYY-MM date.
+SELECT 
+    substr(started_at, 1, 7) AS ride_month,
+    COUNT(*) AS total_rides
+FROM cyclistic
+GROUP BY ride_month
+ORDER BY ride_month;
+
+-- 4. Inspect up to 20 rides starting before the intended analysis period.
+-- This flags records for investigation; it does not remove them.
+-- The text comparison assumes consistently formatted ISO-style timestamps.
+SELECT ride_id, started_at, ended_at
+FROM cyclistic
+WHERE started_at < '2025-09-01'
+ORDER BY started_at
+LIMIT 20;
+
+-- 5. Group those earlier-starting rides by end month to investigate whether
+-- they ended within the analysis period. This does not establish why they
+-- appear in the source files or whether they should be excluded.
+SELECT 
+    substr(ended_at, 1, 7) AS end_month,
+    COUNT(*) AS total_rides
+FROM cyclistic
+WHERE started_at < '2025-09-01'
+GROUP BY end_month
+ORDER BY end_month;
+
+-- 6. Compare total rows with distinct non-NULL ride IDs.
+-- COUNT(DISTINCT ride_id) excludes NULL; any difference may therefore reflect
+-- repeated IDs, NULL IDs, or both. The next query examines these groups.
+SELECT 
+    COUNT(*) AS total_rows,
+    COUNT(DISTINCT ride_id) AS unique_ride_ids
+FROM cyclistic;
+
+-- 7. Identify repeated ride IDs and the NULL-ID group, if present.
+-- A repeated ID alone does not prove that every other field is identical.
+SELECT 
+    ride_id,
+    COUNT(*) AS row_count
+FROM cyclistic
+GROUP BY ride_id
+HAVING COUNT(*) > 1
+    OR ride_id IS NULL
+ORDER BY row_count DESC;
+
+-- 8. Examine every field for one ride ID selected for investigation.
+SELECT *
+FROM cyclistic
+WHERE ride_id = 'EAB7C279D822C763';
+
+-- 9. Compare distinct combinations of key fields for that ride ID.
+-- DISTINCT applies only to the fields selected here, not to the entire row.
+SELECT DISTINCT ride_id, started_at, ended_at, member_casual
+FROM cyclistic
+WHERE ride_id = 'EAB7C279D822C763';
+
+-- 10. Inspect key-field combinations for all repeated non-NULL ride IDs.
+-- NULL IDs are not matched by this IN condition.
+SELECT DISTINCT ride_id, started_at, ended_at, member_casual
+FROM cyclistic
+WHERE ride_id IN (
+    SELECT ride_id
+    FROM cyclistic
+    GROUP BY ride_id
+    HAVING COUNT(*) > 1
+    );
+
+-- 11. Expand the comparison to bicycle type and derived duration/day fields
+-- to investigate whether repeated IDs differ across these attributes.    
+SELECT DISTINCT ride_id, started_at, ended_at, member_casual, rideable_type, ride_length_minutes, ride_length, day_of_week
+FROM cyclistic
+WHERE ride_id IN (
+    SELECT ride_id
+    FROM cyclistic
+    GROUP BY ride_id
+    HAVING COUNT(*) > 1
+    );
+
+-- 12. Create a separate clean table, preserving the raw cyclistic table.
+-- DISTINCT removes duplicate combinations across ALL selected fields.
+-- It does not enforce one row per ride_id if other selected values differ.
+-- Fields omitted from this SELECT (such as source_file, if present) are not
+-- copied and do not affect which rows collapse into a single distinct row.
+-- This step does not filter dates, remove NULL IDs, or recalculate durations.
+-- Run only when cyclistic_clean does not already exist; CREATE TABLE will
+-- otherwise fail. No existing table is dropped or overwritten by this script.    
+CREATE TABLE cyclistic_clean AS
+SELECT DISTINCT ride_id, rideable_type, started_at, ended_at, ride_length, ride_length_minutes, day_of_week, start_station_name, start_station_id, end_station_name, end_station_id, start_lat, start_lng, end_lat, end_lng, member_casual
+FROM cyclistic
+;
