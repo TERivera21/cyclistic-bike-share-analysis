@@ -5,7 +5,9 @@
 **Tools:** SQL (SQLite), SQLiteStudio, Excel  
 **Data:** September 2025–August 2026 monthly files | **6,115,947 cleaned ride records**
 
-Casual rides averaged **20.70 minutes**, compared with **12.37 minutes** for annual members. Casual ride volume peaked on Saturdays, while member rides peaked midweek and showed weekday morning and evening peaks. This analysis translates those differences into membership-marketing hypotheses to test.
+For my Google Data Analytics capstone, I analyzed more than **6.1 million bike-share rides** to understand how annual members and casual riders use the service differently.
+
+I used Excel and SQL in SQLiteStudio to prepare and validate the data, investigate duplicate records and unusual ride durations, and compare riding patterns. My goal was to use those findings to recommend ways Cyclistic could encourage casual riders to become annual members.
 
 [View the presentation](Cyclistic%20Bike-Share%20Analysis.pdf) · [Explore the SQL analysis](Cyclistic%20Data%20Analysis) · [Review data validation and cleaning](Cyclistic%20Data%20Validation)
 
@@ -13,37 +15,37 @@ Casual rides averaged **20.70 minutes**, compared with **12.37 minutes** for ann
 
 **How do annual members and casual riders use Cyclistic bikes differently?**
 
-The goal is to identify differences in ride duration and usage patterns that can inform strategies for converting casual riders into annual members. Cyclistic is the fictional company in the Google Data Analytics case study; the analysis uses public Divvy trip data.
+I compared ride duration, day-of-week patterns, and weekday start times to identify opportunities for membership messaging. Cyclistic is the fictional company in the Google Data Analytics case study; I used public Divvy trip data for the analysis.
 
 ## Key findings
 
-| Area | Finding | Business interpretation |
-| --- | --- | --- |
-| Ride duration | Casual rides averaged **20.70 minutes**, versus **12.37 minutes** for member rides—an **8.33-minute difference**. | Different ride patterns provide a basis for testing tailored membership messages. Duration alone does not establish trip purpose. |
-| Day of week | Casual rides peaked on **Saturday: 456,660 rides**. Member rides peaked on **Wednesday: 631,952 rides**, with Tuesday and Thursday close behind. | Weekend rides offer a potential opportunity to test membership messaging for casual riders. |
-| Weekday start hour | Member rides had a morning peak at **8 a.m.** and their highest peak at **5 p.m.** Casual rides also peaked at **5 p.m.** | Member patterns are consistent with possible commuting use; weekday evening casual rides provide an audience for testing commuting-focused messages. |
+Casual riders took longer rides on average—**20.70 minutes compared with 12.37 minutes** for members, a difference of **8.33 minutes**. Casual rides peaked on **Saturday, with 456,660 rides**, while member rides peaked on **Wednesday, with 631,952 rides**. Tuesday and Thursday member volumes were close behind.
 
-Duration averages include positive-duration rides only. Counts describe **rides, not unique riders**. Hourly weekday findings cover Monday–Friday.
+During the week, members showed peaks at **8 a.m. and 5 p.m.**, suggesting that some may use the service for commuting. Casual rides also peaked at **5 p.m.** These patterns helped me identify opportunities to test weekend and commuting-focused membership messages.
+
+Duration averages include positive-duration rides only. Counts describe **rides, not unique riders**. The hourly weekday comparison covers Monday–Friday.
 
 ## Recommendations
 
-1. **Test weekend membership messaging.** Present an in-app annual-membership offer after a casual weekend ride, especially on Saturday, subject to available targeting capabilities.
-2. **Evaluate value for frequent riders.** Use current pricing and rider-frequency data to calculate a membership break-even point, then test relevant value messaging.
-3. **Test weekday commuting messages.** Compare commuting-focused and general membership messages for eligible casual riders taking weekday rides between 5:00 and 5:59 p.m.
+Based on these findings, I recommend:
 
-Use **membership conversion rates** to evaluate pilot results before expanding campaigns. These are proposed tests, not implemented campaigns or demonstrated conversion gains.
+1. **Testing membership offers after weekend rides**, especially on Saturdays, using in-app messaging where targeting is available.
+2. **Reviewing pricing to determine when a membership would benefit frequent casual riders.** This would require pricing and rider-frequency data to calculate a break-even point.
+3. **Comparing commuting-focused messages with general membership messages** for eligible casual riders taking weekday rides between 5:00 and 5:59 p.m.
+
+These recommendations would need to be tested. The analysis shows differences in riding behavior, but it does not tell us why someone rides or whether they would purchase a membership. I would measure results using **membership conversion rates** before expanding successful campaigns.
 
 ## Data preparation and quality checks
 
-- Preserved source CSV files separately from working copies.
-- Compared record counts and start/end timestamps between CSV and Excel copies.
-- Combined 12 monthly files in SQLite.
-- Prepared ride-duration and day-of-week fields for analysis.
-- Investigated repeated ride IDs and removed **35 duplicate records** when creating `cyclistic_clean` with distinct combinations of the selected fields.
-- Retained **29 negative-duration records** in the clean dataset but excluded them from average-duration calculations.
-- Used explicit numeric casts for duration calculations and inspected unusually long rides.
+- I preserved source CSV files separately from working copies.
+- I compared record counts and start/end timestamps between CSV and Excel copies.
+- I combined 12 monthly files in SQLite.
+- I prepared ride-duration and day-of-week fields for analysis.
+- I investigated repeated ride IDs and removed **35 duplicate records** when creating `cyclistic_clean` with distinct combinations of the selected fields.
+- I retained **29 negative-duration records** in the clean dataset but excluded them from average-duration calculations.
+- I used explicit numeric casts for duration calculations and inspected unusually long rides.
 
-The SQL includes a diagnostic calculation adding 60 minutes to negative durations to explore a possible clock-change explanation. It does **not** alter the records or establish that explanation as confirmed. Positive extreme durations remain in the averages.
+I also explored whether a one-hour clock change could explain the negative durations by adding 60 minutes in a diagnostic query. I kept the original values; that calculation does not confirm the cause. Very long positive rides remain in the averages.
 
 ## Repository contents
 
